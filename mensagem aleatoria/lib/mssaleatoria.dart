@@ -1,32 +1,31 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String nome;
+
+  const Home({super.key, required this.nome});
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  String _message = 'Clique para receber uma nova mensagem !';
+  String _message = 'Clique para receber uma nova mensagem!';
 
   List<String> messages = [
-    "Bem vindo !",
-    "Tudo bem ?",
-    "Boas Vindas !",
-    "Saudações !",
-    "Como vai ?"
+    "Bem vindo, {name}!",
+    "Tudo bem, {name}?",
+    "Boas Vindas, {name}!",
+    "Saudações, {name}!",
+    "Como vai, {name}?"
   ];
 
   void _generateText() {
     int i = Random().nextInt(messages.length);
 
     setState(() {
-      this._message = messages[i];
+      _message = messages[i].replaceAll("{name}", widget.nome);
     });
   }
 

@@ -37,7 +37,7 @@ class _InputExampleState extends State<InputExample> {
           TextField(
             controller: _controller,
             decoration: InputDecoration(
-              labelText: "Digite algo",
+              labelText: "Digite seu nome",
               border: OutlineInputBorder(),
             ),
           ),
@@ -47,8 +47,9 @@ class _InputExampleState extends State<InputExample> {
               setState(() {
                 nome = _controller.text;
               });
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => Home()));
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => Home(nome: nome)),
+              );
             },
             child: Text("Salvar"),
           ),
@@ -62,3 +63,4 @@ class _InputExampleState extends State<InputExample> {
     );
   }
 }
+  
