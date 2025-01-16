@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mensagem_aleatoria/mssaleatoria.dart';
 
 void main() {
   runApp(MyApp());
@@ -46,8 +47,8 @@ class _InputExampleState extends State<InputExample> {
               setState(() {
                 nome = _controller.text;
               });
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => Home(nome: nome)));
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => Home()));
             },
             child: Text("Salvar"),
           ),
@@ -57,25 +58,6 @@ class _InputExampleState extends State<InputExample> {
             style: TextStyle(fontSize: 18),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class Home extends StatelessWidget {
-  final String nome;
-
-  Home({required this.nome});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Página Home")),
-      body: Center(
-        child: Text(
-          "Olá, $nome!",
-          style: TextStyle(fontSize: 24),
-        ),
       ),
     );
   }
