@@ -29,6 +29,8 @@ class _InputExampleState extends State<InputExample> {
   TextEditingController _controllerTarefa = TextEditingController();
   TextEditingController _controllerDescricao = TextEditingController();
   TextEditingController _controllerHorario = TextEditingController();
+  
+  List<Map<String, String>> _tarefas = [];
 
   void _adicionarTarefa(BuildContext context) {
     String tarefasTitle = _controllerListaTarefa.text;
@@ -36,21 +38,34 @@ class _InputExampleState extends State<InputExample> {
     String descricao = _controllerDescricao.text;
     String horario = _controllerHorario.text;
 
-    if (tarefasTitle.isEmpty ||
-        tarefa.isEmpty ||
-        descricao.isEmpty ||
-        horario.isEmpty) {
+    if (tarefasTitle.isEmpty || tarefa.isEmpty || descricao.isEmpty || horario.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Preencha todos os campos!")),
       );
-    } else {
+      return;
+    }
+
+    if (_tarefas.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Você só pode adicionar até 5 tarefas!")),
+      );
+      return;
+    }
+
+    setState(() {
+      _tarefas.add({
+        "tarefa": tarefa,
+        "descricao": descricao,
+        "horario": horario,
+      });
+    });
+
+    if (_tarefas.length >= 2) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => Home(
             tarefasTitle: tarefasTitle,
-            tarefa: tarefa,
-            descricao: descricao,
-            horario: horario,
+            tarefas: _tarefas,
           ),
         ),
       );
@@ -66,7 +81,7 @@ class _InputExampleState extends State<InputExample> {
           TextField(
             controller: _controllerListaTarefa,
             decoration: InputDecoration(
-              labelText: "Qual o nome da Lista de Tarefas",
+              labelText: "Nome da Lista de Tarefas",
               border: OutlineInputBorder(),
             ),
           ),
