@@ -78,17 +78,20 @@ class _ListaDeTarefasScreenState extends State<ListaDeTarefasScreen> {
       MaterialPageRoute(
         builder: (context) => TarefasScreen(
           nomeLista: _listasDeTarefas[index]["nome"],
-          tarefas: List<Map<String, dynamic>>.from(_listasDeTarefas[index]["tarefas"]),
-          salvarTarefas: () {
+          tarefas: List<Map<String, dynamic>>.from(
+              _listasDeTarefas[index]["tarefas"]),
+          salvarTarefas: (List<Map<String, dynamic>> tarefasAtualizadas) {
+            setState(() {
+              _listasDeTarefas[index]["tarefas"] = tarefasAtualizadas;
+            });
             _salvarListas();
-            setState(() {});
           },
           excluirLista: () {
             _excluirLista(index);
           },
         ),
       ),
-    ).then((_) => _carregarListas());
+    );
   }
 
   @override

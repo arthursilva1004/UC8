@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class TarefasScreen extends StatefulWidget {
   final String nomeLista;
   final List<Map<String, dynamic>> tarefas;
-  final Function salvarTarefas;
+  final Function(List<Map<String, dynamic>>) salvarTarefas;
   final Function excluirLista;
 
   const TarefasScreen({
@@ -52,7 +50,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
           "feito": false,
         });
       });
-      widget.salvarTarefas();
+      widget.salvarTarefas(_tarefas);
       _tarefaController.clear();
       _descricaoController.clear();
       _horarioController.clear();
@@ -60,26 +58,23 @@ class _TarefasScreenState extends State<TarefasScreen> {
   }
 
   void _removerTarefa(int index) {
-    if (_tarefas.length <= _minimoTarefas) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("É necessário informar no mínimo $_minimoTarefas tarefas.")),
-      );
-      return;
-    }
     setState(() {
       _tarefas.removeAt(index);
     });
-    widget.salvarTarefas();
+    widget.salvarTarefas(_tarefas);
   }
 
   void _salvarLista() {
     if (_tarefas.length < _minimoTarefas) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("É necessário informar no mínimo $_minimoTarefas tarefas.")),
+        SnackBar(
+          content:
+              Text("É necessário informar no mínimo $_minimoTarefas tarefas."),
+        ),
       );
       return;
     }
-    widget.salvarTarefas();
+    widget.salvarTarefas(_tarefas);
     Navigator.pop(context);
   }
 
@@ -101,7 +96,10 @@ class _TarefasScreenState extends State<TarefasScreen> {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: Text("Excluir", style: TextStyle(color: Colors.red)),
+              child: Text(
+                "Excluir",
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
@@ -159,8 +157,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        "Descrição: ${tarefa['descricao']} - Horário: ${tarefa['horario']}"
-                      ),
+                          "Descrição: ${tarefa['descricao']} - Horário: ${tarefa['horario']}"),
                       leading: Checkbox(
                         value: tarefa["feito"],
                         onChanged: (value) => setState(() {
