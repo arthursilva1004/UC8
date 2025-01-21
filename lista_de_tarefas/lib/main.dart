@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lista_de_tarefas/tarefas.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'tarefas.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,110 +13,123 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Agenda de Tarefas',
-      home: Scaffold(
-        appBar: AppBar(title: Text("Sistema de Agenda")),
-        body: InputExample(),
-      ),
+      home: ListaDeTarefasScreen(),
     );
   }
 }
 
-class InputExample extends StatefulWidget {
+class ListaDeTarefasScreen extends StatefulWidget {
   @override
-  _InputExampleState createState() => _InputExampleState();
+  _ListaDeTarefasScreenState createState() => _ListaDeTarefasScreenState();
 }
 
-class _InputExampleState extends State<InputExample> {
-  TextEditingController _controllerListaTarefa = TextEditingController();
-  TextEditingController _controllerTarefa = TextEditingController();
-  TextEditingController _controllerDescricao = TextEditingController();
-  TextEditingController _controllerHorario = TextEditingController();
-  
-  List<Map<String, String>> _tarefas = [];
+class _ListaDeTarefasScreenState extends State<ListaDeTarefasScreen> {
+  List<Map<String, dynamic>> _listasDeTarefas = [];
+  TextEditingController _nomeListaController = TextEditingController();
 
-  void _adicionarTarefa(BuildContext context) {
-    String tarefasTitle = _controllerListaTarefa.text;
-    String tarefa = _controllerTarefa.text;
-    String descricao = _controllerDescricao.text;
-    String horario = _controllerHorario.text;
+  @override
+  void initState() {
+    super.initState();
+    _carregarListas();
+  }
 
-    if (tarefasTitle.isEmpty || tarefa.isEmpty || descricao.isEmpty || horario.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Preencha todos os campos!")),
-      );
-      return;
-    }
-
-    if (_tarefas.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Você só pode adicionar até 5 tarefas!")),
-      );
-      return;
-    }
-
-    setState(() {
-      _tarefas.add({
-        "tarefa": tarefa,
-        "descricao": descricao,
-        "horario": horario,
+  Future<void> _carregarListas() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? dados = prefs.getString("listasDeTarefas");
+    if (dados != null) {
+      setState(() {
+        _listasDeTarefas = List<Map<String, dynamic>>.from(json.decode(dados));
       });
-    });
-
-    if (_tarefas.length >= 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => Home(
-            tarefasTitle: tarefasTitle,
-            tarefas: _tarefas,
-          ),
-        ),
-      );
     }
+  }
+
+  Future<void> _salvarListas() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString("listasDeTarefas", json.encode(_listasDeTarefas));
+  }
+
+  void _adicionarLista() {
+    if (_nomeListaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Digite um nome para a lista!")),
+      );
+      return;
+    }
+    setState(() {
+      _listasDeTarefas.add({
+        "nome": _nomeListaController.text,
+        "tarefas": [],
+      });
+      _nomeListaController.clear();
+    });
+    _salvarListas();
+  }
+
+  void _excluirLista(int index) {
+    setState(() {
+      _listasDeTarefas.removeAt(index);
+    });
+    _salvarListas();
+  }
+
+  void _editarLista(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TarefasScreen(
+          nomeLista: _listasDeTarefas[index]["nome"],
+          tarefas: List<Map<String, dynamic>>.from(_listasDeTarefas[index]["tarefas"]),
+          salvarTarefas: () {
+            _salvarListas();
+            setState(() {});
+          },
+          excluirLista: () {
+            _excluirLista(index);
+          },
+        ),
+      ),
+    ).then((_) => _carregarListas());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _controllerListaTarefa,
-            decoration: InputDecoration(
-              labelText: "Nome da Lista de Tarefas",
-              border: OutlineInputBorder(),
+    return Scaffold(
+      appBar: AppBar(title: Text("Sistema de Agenda")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nomeListaController,
+              decoration: InputDecoration(
+                labelText: "Nome da Lista",
+                border: OutlineInputBorder(),
+              ),
             ),
-          ),
-          SizedBox(height: 16),
-          TextField(
-            controller: _controllerTarefa,
-            decoration: InputDecoration(
-              labelText: "Nome da sua tarefa",
-              border: OutlineInputBorder(),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _adicionarLista,
+              child: Text("Adicionar Lista"),
             ),
-          ),
-          SizedBox(height: 16),
-          TextField(
-            controller: _controllerDescricao,
-            decoration: InputDecoration(
-              labelText: "Descrição da sua tarefa",
-              border: OutlineInputBorder(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _listasDeTarefas.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(_listasDeTarefas[index]["nome"]),
+                      onTap: () => _editarLista(index),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _excluirLista(index),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: 16),
-          TextField(
-            controller: _controllerHorario,
-            decoration: InputDecoration(
-              labelText: "Horário da sua tarefa",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => _adicionarTarefa(context),
-            child: Text("Adicionar Tarefa"),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
